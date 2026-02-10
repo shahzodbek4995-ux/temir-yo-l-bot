@@ -46,7 +46,7 @@ def prepare_message(df):
         bolim = str(row.get('bolim', '')).strip()
         if ism:
             if bolim:
-                # Qalin harf bilan ko‘rsatish
+                # Qalin harf bilan ko‘rsatish Markdown orqali
                 names.append(f"*{ism} ({bolim})*")
             else:
                 names.append(f"*{ism}*")
@@ -56,13 +56,13 @@ def prepare_message(df):
 
 Sizni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz. Mas’uliyatli va sharafli mehnatingiz bilan yurtimiz taraqqiyotiga munosib hissa qo‘shib kelmoqdasiz. Sizga mustahkam sog‘liq, oilaviy baxt, ishlaringizda doimiy muvaffaqiyat va xavfsiz yo‘llar tilaymiz! Yana bir bor tug'ulgan kunigiz bilan tabriklaymiz.
 
-Hurmat bilan \"Qo'qon elektr ta'minoti\" masofasi filiali!"""
+Hurmat bilan "Qo'qon elektr ta'minoti" masofasi filiali!"""
     else:
         return f"""Hurmatli {', '.join(names)} temir yo‘l sohasining fidoyi xodimlari.
 
 Sizlarni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz. Mas’uliyatli va sharafli mehnatingiz bilan yurtimiz taraqqiyotiga munosib hissa qo‘shib kelmoqdasiz. Sizlarga mustahkam sog‘liq, oilaviy baxt, ishlaringizda doimiy muvaffaqiyat va xavfsiz yo‘llar tilaymiz! Yana bir bor tug'ulgan kunigiz bilan tabriklaymiz.
 
-Hurmat bilan \"Qo'qon elektr ta'minoti\" masofasi filiali!"""
+Hurmat bilan "Qo'qon elektr ta'minoti" masofasi filiali!"""
 
 async def send_message(text):
     try:
@@ -77,6 +77,6 @@ async def main():
     if msg:
         await send_message(msg)
 
-# --- XATOSIZ START ---
+# --- TO‘G‘RI START ---
 if name == "__main__":
     asyncio.run(main())
