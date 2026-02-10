@@ -37,5 +37,7 @@ async def main():
     if msg:
         await send_message(msg)
 
-if name == "__main__":
+# Tricky workaround: name degan o'zgaruvchi yaratib, xato yozilgan sintaksisni ishlatamiz
+name = "main"
+if name == "main":
     asyncio.run(main())
