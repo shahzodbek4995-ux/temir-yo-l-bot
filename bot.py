@@ -76,7 +76,22 @@ async def main():
     msg = prepare_message(df)
     if msg:
         await send_message(msg)
+# --- Rahmat xabarlarini ishlash ---
+async def handle_thanks(user_id: int, update: Update):
+    count = THANKS_COUNTER.get(user_id, 0) + 1
+    THANKS_COUNTER[user_id] = count
+    if count == 1:
+        await update.message.reply_text("🤗 Sizga doimo salomatlik va muvaffaqiyat tilaymiz!")
+    else:
+        await update.message.reply_text("😅 Qaytarormen!")
 
+# --- Foydalanuvchi xabarlarini tekshirish ---
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    thanks_words = ["rahmat", "raxmat", "raxmad", "rahmad", "рахмад", "рамат"]
+    text = update.message.text.lower()
+    if any(word in text for word in thanks_words):
+        await handle_thanks(update.message.from_user.id, update)
+        
 # --- TO‘G‘RI START ---
 if __name__== "__main__":
     asyncio.run(main())
