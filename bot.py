@@ -2,7 +2,8 @@ import pandas as pd
 from datetime import datetime
 import random
 import json
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
 # --- Sozlamalar ---
@@ -60,19 +61,15 @@ def prepare_message(df):
     last_date = load_last_message_date()
     
     if df.empty:
-        # Agar oxirgi xabar bugungi kunga yuborilgan bo'lsa skip qilamiz
         if last_date and last_date == today:
             return None
-        # Agar oldingi xabar bir necha kun ketma-ket bo‘lgan bo‘lsa, random motivatsion yuborish
         if last_date and (today - last_date).days > 0:
             msg = random.choice(motivational_messages)
         else:
-            # Birinchi kun → shaxsiy xabar
             msg = "🎉 Afsus! Bugun tug‘ilgan kun yo‘q!\nLekin bugun mening tug‘ilgan kunim! Uraaa, tabriklasalaring bo‘ladi! 🥳🎂"
         save_last_message_date(today.isoformat())
         return msg
     
-    # Agar bugun tug‘ilganlar bo‘lsa → tabrik xabari
     names = [f"{row['ism']} ({row['bolim']}) 🎉" for _, row in df.iterrows() if row['ism']]
     if len(names) == 1:
         return f"""🎉🥳 Hurmatli {names[0]}!
@@ -86,10 +83,10 @@ Hurmat bilan, "Qo'qon elektr ta'minoti" masofasi filiali 💡"""
     else:
         names_text = '\n- '.join(names)
         return (
-        f"🎉 Bugun tug‘ilganlar:\n- {names_text}\n\n"
+            f"🎉 Bugun tug‘ilganlar:\n- {names_text}\n\n"
             "Sizlarni chin qalbimizdan tabriklaymiz!\n"
             "🌟 Sizlarga sog‘liq, oilaviy baxt va ishlaringizda doimiy muvaffaqiyat tilaymiz!\n\n"
-            "Hurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali 💡"
+        "Hurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali 💡"
         )
 
 # --- Inline tugma va javob qabul qilish ---
@@ -117,5 +114,4 @@ app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply_text))
 
-# Botni ishga tushirish
 app.run_polling()
