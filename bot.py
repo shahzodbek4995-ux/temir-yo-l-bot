@@ -2,111 +2,96 @@ import pandas as pd
 from datetime import datetime
 import random
 import json
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from telegram import Bot
 
+# ================== SOZLAMALAR ==================
 BOT_TOKEN = "8468084793:AAHdu9ZiywoxWdrhrJLYSU2Wt7F3O2cnrfU"
 GROUP_ID = -1003613716463
 SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv"
+STATE_FILE = "state.json"
 
-motivational_messages = [
-    "🚆 Bugun yo‘llar tinch, vagonlar tartibli, siz esa fidoyi xodim sifatida o‘z ishini mukammal bajarishda davom etyapsiz! 💪",
-    "⚡ Har bir temir yo‘l uzelining harakati sizning mehnatingiz bilan bog‘liq. Bugun yangi marralarga intiling! 🚄",
-    "🌟 Sizning mas’uliyatli va e’tiborli mehnatingiz tufayli yurtimiz taraqqiyotga intilmoqda. Bugun ham shunday davom eting!",
-    "🚧 Vagonlar, relslar, stansiyalar… hammasi sizning mehnatingiz bilan tinch va xavfsiz ishlaydi. Rahmat sizga!",
-    "🎯 Har bir to‘xtovsiz harakat, har bir belgilangan vaqtni bajarish – bu sizning fidoyiligingiz! Bugun yangi marralarni zabt eting!",
-    "💡 Yangi loyihalar, yangi imkoniyatlar – temir yo‘l sohasi doimo yangilanadi. Siz ham yangilikka tayyormisiz?",
-    "🛤️ Bugun hech kim tug‘ilgan kunini nishonlamasa ham, jamoamiz faol va yo‘llar xavfsiz! Sizning mehnatingiz buning garovi!",
-    "🌈 Har bir kun – yangi imkoniyat. Bugun biror yangilikni o‘zingiz yaratib, hamkasblaringizni ilhomlantiring!",
-    "🏅 Sizning mas’uliyatli mehnatingiz temir yo‘l infratuzilmasini mukammal ishlashini ta’minlaydi. Bugun ham shunday davom eting!",
-    "🚀 Fidoyi xodimlar yo‘llarimizni xavfsiz qiladi va taraqqiyotga hissa qo‘shadi. Bugun yangi marralarga intiling!"
+# ================== 10 TA MOTIVATSION XABAR ==================
+MOTIVATION_MESSAGES = [
+    "🚆 Bugun yo‘llar tinch, vagonlar tartibli. Siz fidoyi temiryo‘lchisiz! 💪",
+    "⚡ Temir yo‘l – mas’uliyat va e’tibor. Bugun ham xavfsizlikni unutmang!",
+    "🌟 Sizning mehnatingiz tufayli yo‘llarimiz ishonchli va xavfsiz!",
+    "🚧 Har bir rels, har bir vagon — sizning fidoyiligingiz samarasi!",
+    "🎯 Belgilangan vaqt va xavfsiz yo‘l — bu sizning mehnatingiz!",
+    "💡 Temir yo‘l sohasi rivojida sizning hissangiz katta!",
+    "🛤️ Bugun tug‘ilgan kun bo‘lmasa ham, jamoamiz ishda!",
+    "🌈 Har bir ish kuni — yangi imkoniyat. Bugun ham o‘rnak bo‘ling!",
+    "🏅 Siz temir yo‘l tizimining tayanchisiz!",
+    "🚀 Fidoyi temiryo‘lchilar — taraqqiyot poydevori!"
 ]
 
-LAST_MSG_FILE = "last_message.json"
-
-def save_last_message_date(date_str):
+# ================== STATE ==================
+def load_state():
     try:
-        with open(LAST_MSG_FILE, "w") as f:
-            json.dump({"last_no_birthday": date_str}, f)
+        with open(STATE_FILE, "r") as f:
+            return json.load(f)
     except:
-        pass
+        return {"last_type": None}
 
-def load_last_message_date():
-    try:
-        with open(LAST_MSG_FILE, "r") as f:
-            data = json.load(f)
-            return datetime.fromisoformat(data.get("last_no_birthday")).date()
-    except:
-        return None
+def save_state(state):
+    with open(STATE_FILE, "w") as f:
+        json.dump(state, f)
 
+# ================== TUG‘ILGAN KUNNI OLISH ==================
 def get_today_birthdays():
-    try:
-        df = pd.read_csv(SHEET_CSV)
-        df = df.fillna('')
-        df['tugilgan_kun'] = pd.to_datetime(df['tugilgan_kun'], errors='coerce')
-        today = datetime.now()
-        return df[(df['tugilgan_kun'].dt.day == today.day) & 
-                  (df['tugilgan_kun'].dt.month == today.month)]
-    except:
-        return pd.DataFrame()
+    df = pd.read_csv(SHEET_CSV)
+    df = df.fillna("")
+    df["tugilgan_kun"] = pd.to_datetime(df["tugilgan_kun"], errors="coerce")
 
-def prepare_message(df):
-    today = datetime.now().date()
-    last_date = load_last_message_date()
-    
-    if df.empty:
-        if last_date and last_date == today:
-            return None
-        if last_date and (today - last_date).days > 0:
-            msg = random.choice(motivational_messages)
-        else:
-            msg = "🎉 Afsus! Bugun tug‘ilgan kun yo‘q!\nLekin bugun mening tug‘ilgan kunim! Uraaa, tabriklasalaring bo‘ladi! 🥳🎂"
-        save_last_message_date(today.isoformat())
-        return msg
-    
-    names = [f"{row['ism']} ({row['bolim']}) 🎉" for _, row in df.iterrows() if row['ism']]
-    if len(names) == 1:
-        return f"""🎉🥳 Hurmatli {names[0]}!
+    today = datetime.now()
+    return df[
+        (df["tugilgan_kun"].dt.day == today.day) &
+        (df["tugilgan_kun"].dt.month == today.month)
+    ]
 
-Sizni tug‘ilgan kuningiz bilan tabriklaymiz!  
-Mas’uliyatli mehnatingiz va fidoyiligingiz bilan yurtimiz taraqqiyotiga hissa qo‘shib kelmoqdasiz.  
-
-🌟 Sizga sog‘liq, oilaviy baxt, ishlaringizda muvaffaqiyat va ko‘plab qiziqarli lahzalar tilaymiz!  
-
-Hurmat bilan, "Qo'qon elektr ta'minoti" masofasi filiali 💡"""
-    else:
-        names_text = '\n- '.join(names)
-        return (
-            f"🎉 Bugun tug‘ilganlar:\n- {names_text}\n\n"
-            "Sizlarni chin qalbimizdan tabriklaymiz!\n"
-            "🌟 Sizlarga sog‘liq, oilaviy baxt va ishlaringizda doimiy muvaffaqiyat tilaymiz!\n\n"
-            "Hurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali 💡"
-        )
-
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    await query.message.reply_text("🎊 Sizni yana bir bor tabriklaymiz! 🎂")
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# ================== ASOSIY LOGIKA ==================
+def main():
+    bot = Bot(token=BOT_TOKEN)
+    state = load_state()
     df = get_today_birthdays()
-    msg = prepare_message(df)
-    if msg:
-        keyboard = [[InlineKeyboardButton("🎉 Tug‘ilgan kuningiz bilan tabriklash!", callback_data='celebrate')]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await context.bot.send_message(chat_id=GROUP_ID, text=msg, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
 
-# --- Yangilangan reply_text funksiyasi ---
-async def reply_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.lower()
-    thanks_words = ["rahmat", "rahmad", "рахмат", "рахмад"]
-    if any(word in text for word in thanks_words):
-        await update.message.reply_text("🤗 Sizga doimo muvaffaqiyat tilaymiz!")
+    # ===== AGAR BUGUN TUG‘ILGAN KUN BO‘LSA =====
+    if not df.empty:
+        people = [f"{r['ism']} ({r['bolim']})" for _, r in df.iterrows()]
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(button))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply_text))
+        if len(people) == 1:
+            text = f"""🎉🥳 Hurmatli {people[0]}!
 
-app.run_polling()
+Sizni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz!
+Mustahkam sog‘liq, oilaviy baxt va ishlaringizda muvaffaqiyat tilaymiz.
+
+Hurmat bilan,
+"Qo‘qon elektr ta’minoti" masofasi filiali 💡"""
+        else:
+            text = (
+                "🎉 Bugun tug‘ilganlar:\n- " +
+                "\n- ".join(people) +
+                "\n\nBarchangizni chin qalbimizdan tabriklaymiz! 🎊\n\n"
+                "Hurmat bilan,\n"
+                "\"Qo‘qon elektr ta’minoti\" masofasi filiali 💡"
+            )
+
+        bot.send_message(chat_id=GROUP_ID, text=text)
+        save_state({"last_type": "birthday"})
+        return
+
+    # ===== AGAR TUG‘ILGAN KUN BO‘LMASA =====
+    if state.get("last_type") != "no_birthday":
+        text = (
+            "🎉 Afsus, bugun tug‘ilgan kun yo‘q!\n\n"
+            "Lekin bugun mening tug‘ilgan kunim! 🥳🎂\n"
+            "Tabriklasalaring bo‘ladi 😄"
+        )
+        save_state({"last_type": "no_birthday"})
+    else:
+        text = random.choice(MOTIVATION_MESSAGES)
+
+    bot.send_message(chat_id=GROUP_ID, text=text)
+
+# ================== ISHGA TUSHIRISH ==================
+if name == "__main__":
+    main()
