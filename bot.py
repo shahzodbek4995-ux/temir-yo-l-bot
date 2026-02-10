@@ -1,12 +1,11 @@
 import pandas as pd
 import random
 from datetime import datetime
-from telegram import Update, Bot
+from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
-    CallbackContext,
     ContextTypes,
     filters,
 )
@@ -71,11 +70,6 @@ Sizlarni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz. Mas’uliyatl
 
 Hurmat bilan "Qo'qon elektr ta'minoti" masofasi filiali!"""
 
-# --- Telegramga xabar yuborish ---
-async def send_message(text):
-    bot = Bot(BOT_TOKEN)
-    await bot.send_message(chat_id=GROUP_ID, text=text, parse_mode="Markdown")
-
 # --- Rahmat xabarlarini ishlash ---
 async def handle_thanks(user_id: int, update: Update):
     count = THANKS_COUNTER.get(user_id, 0) + 1
@@ -96,10 +90,11 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     df = get_today_birthdays()
     msg = prepare_message(df)
-    await send_message(msg)
+    if msg:
+        await context.bot.send_message(chat_id=GROUP_ID, text=msg, parse_mode="Markdown")
 
 # --- Bot ishga tushirish ---
-if __name__ == "__main__":
+if name == "__main__":
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
