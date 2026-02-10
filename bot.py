@@ -1,10 +1,11 @@
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 import random
 import json
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
+# --- Sozlamalar ---
 BOT_TOKEN = "8468084793:AAHdu9ZiywoxWdrhrJLYSU2Wt7F3O2cnrfU"
 GROUP_ID = -1003613716463
 SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv"
@@ -37,7 +38,7 @@ def load_last_message_date():
     try:
         with open(LAST_MSG_FILE, "r") as f:
             data = json.load(f)
-            return datetime.fromisoformat(data.get("last_no_birthday"))
+            return datetime.fromisoformat(data.get("last_no_birthday")).date()
     except:
         return None
 
@@ -55,20 +56,20 @@ def get_today_birthdays():
 
 # --- Xabar tayyorlash ---
 def prepare_message(df):
-    today_str = datetime.now().date().isoformat()
+    today = datetime.now().date()
     last_date = load_last_message_date()
     
     if df.empty:
-        # Agar oxirgi “hech kim tug‘ilgan kun yo‘q” xabari bugungi kunga yuborilgan bo'lsa skip qilamiz
-        if last_date and last_date == datetime.now().date():
+        # Agar oxirgi xabar bugungi kunga yuborilgan bo'lsa skip qilamiz
+        if last_date and last_date == today:
             return None
         # Agar oldingi xabar bir necha kun ketma-ket bo‘lgan bo‘lsa, random motivatsion yuborish
-        if last_date and (datetime.now().date() - last_date).days > 0:
+        if last_date and (today - last_date).days > 0:
             msg = random.choice(motivational_messages)
         else:
             # Birinchi kun → shaxsiy xabar
             msg = "🎉 Afsus! Bugun tug‘ilgan kun yo‘q!\nLekin bugun mening tug‘ilgan kunim! Uraaa, tabriklasalaring bo‘ladi! 🥳🎂"
-        save_last_message_date(today_str)
+        save_last_message_date(today.isoformat())
         return msg
     
     # Agar bugun tug‘ilganlar bo‘lsa → tabrik xabari
@@ -83,13 +84,13 @@ Mas’uliyatli mehnatingiz va fidoyiligingiz bilan yurtimiz taraqqiyotiga hissa 
 
 Hurmat bilan, "Qo'qon elektr ta'minoti" masofasi filiali 💡"""
     else:
-        return f"""🎉 Bugun tug‘ilganlar:  
-- {'\n- '.join(names)}
-
-Sizlarni chin qalbimizdan tabriklaymiz!  
-🌟 Sizlarga sog‘liq, oilaviy baxt va ishlaringizda doimiy muvaffaqiyat tilaymiz!  
-
-Hurmat bilan, "Qo'qon elektr ta'minoti" masofasi filiali 💡"""
+        names_text = '\n- '.join(names)
+        return (
+        f"🎉 Bugun tug‘ilganlar:\n- {names_text}\n\n"
+            "Sizlarni chin qalbimizdan tabriklaymiz!\n"
+            "🌟 Sizlarga sog‘liq, oilaviy baxt va ishlaringizda doimiy muvaffaqiyat tilaymiz!\n\n"
+            "Hurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali 💡"
+        )
 
 # --- Inline tugma va javob qabul qilish ---
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
