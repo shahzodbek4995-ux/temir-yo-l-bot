@@ -86,3 +86,4 @@ else:
         text = random.choice(MOTIVATION_MESSAGES)
 
     bot.send_message(chat_id=GROUP_ID, text=text)
+    bot.send_message(chat_id=GROUP_ID, text="✅ TEST: bot ishlayapti")
