@@ -6,12 +6,10 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
-# --- Sozlamalar ---
 BOT_TOKEN = "8468084793:AAHdu9ZiywoxWdrhrJLYSU2Wt7F3O2cnrfU"
 GROUP_ID = -1003613716463
 SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv"
 
-# --- Motivatsion xabarlar ro'yxati ---
 motivational_messages = [
     "🚆 Bugun yo‘llar tinch, vagonlar tartibli, siz esa fidoyi xodim sifatida o‘z ishini mukammal bajarishda davom etyapsiz! 💪",
     "⚡ Har bir temir yo‘l uzelining harakati sizning mehnatingiz bilan bog‘liq. Bugun yangi marralarga intiling! 🚄",
@@ -25,7 +23,6 @@ motivational_messages = [
     "🚀 Fidoyi xodimlar yo‘llarimizni xavfsiz qiladi va taraqqiyotga hissa qo‘shadi. Bugun yangi marralarga intiling!"
 ]
 
-# --- Oxirgi xabar yuborilgan sanani saqlash ---
 LAST_MSG_FILE = "last_message.json"
 
 def save_last_message_date(date_str):
@@ -43,7 +40,6 @@ def load_last_message_date():
     except:
         return None
 
-# --- Bugungi tug‘ilgan kunlarni olish ---
 def get_today_birthdays():
     try:
         df = pd.read_csv(SHEET_CSV)
@@ -55,7 +51,6 @@ def get_today_birthdays():
     except:
         return pd.DataFrame()
 
-# --- Xabar tayyorlash ---
 def prepare_message(df):
     today = datetime.now().date()
     last_date = load_last_message_date()
@@ -86,10 +81,9 @@ Hurmat bilan, "Qo'qon elektr ta'minoti" masofasi filiali 💡"""
             f"🎉 Bugun tug‘ilganlar:\n- {names_text}\n\n"
             "Sizlarni chin qalbimizdan tabriklaymiz!\n"
             "🌟 Sizlarga sog‘liq, oilaviy baxt va ishlaringizda doimiy muvaffaqiyat tilaymiz!\n\n"
-        "Hurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali 💡"
+            "Hurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali 💡"
         )
 
-# --- Inline tugma va javob qabul qilish ---
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -103,12 +97,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await context.bot.send_message(chat_id=GROUP_ID, text=msg, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
 
+# --- Yangilangan reply_text funksiyasi ---
 async def reply_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
-    if "rahmat" in text:
+    thanks_words = ["rahmat", "rahmad", "рахмат", "рахмад"]
+    if any(word in text for word in thanks_words):
         await update.message.reply_text("🤗 Sizga doimo muvaffaqiyat tilaymiz!")
 
-# --- Bot ishga tushishi ---
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button))
