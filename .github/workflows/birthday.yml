@@ -3,19 +3,23 @@ name: Birthday Bot
 on:
   schedule:
     - cron: "0 3 * * *"  # Har kuni 03:00 UTC → Toshkent 08:00
-  workflow_dispatch:
+  workflow_dispatch:  # Siz xohlasa qo'lda ham ishga tushira olasiz
 
 jobs:
   run:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Repositoryni yuklab olish
       - uses: actions/checkout@v4
 
+      # 2️⃣ Python o'rnatish
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
+      # 3️⃣ Zarur kutubxonalarni o'rnatish
       - run: pip install "python-telegram-bot==20.3" pandas
 
+      # 4️⃣ Botni ishga tushirish
       - run: python bot.py
