@@ -78,5 +78,5 @@ async def main():
         await send_message(msg)
 
 # --- TO‘G‘RI START ---
-if name == "__main__":
+if __name__== "__main__":
     asyncio.run(main())
