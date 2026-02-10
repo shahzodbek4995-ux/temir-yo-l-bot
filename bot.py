@@ -76,7 +76,7 @@ async def send_message(text):
 async def handle_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     text = update.message.text.lower()
-if any(word in text for word in ["rahmat","raxmat","raxmad","rahmad","рахмад","рамат"]):
+    if any(word in text for word in ["rahmat","raxmat","raxmad","rahmad","рахмад","рамат"]):
         count = thank_counter.get(user_id, 0) + 1
         thank_counter[user_id] = count
         if count == 1:
@@ -98,4 +98,3 @@ if name == "__main__":
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_reply))
     # Botni ishga tushirish
     asyncio.run(main())
-    
