@@ -1,62 +1,35 @@
-import pandas as pd
-import asyncio
-from telegram import Bot
-from datetime import datetime
+return f"""🎉 Bugun tug‘ilganlar:  
+- {'\n- '.join(names)}
 
-BOT_TOKEN = "8468084793:AAHdu9ZiywoxWdrhrJLYSU2Wt7F3O2cnrfU"
-GROUP_ID = -1003613716463
-SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv"
+Sizlarni chin qalbimizdan tabriklaymiz!  
+🌟 Sizlarga sog‘liq, oilaviy baxt va ishlaringizda doimiy muvaffaqiyat tilaymiz!  
 
-def get_today_birthdays():
-    try:
-        df = pd.read_csv(SHEET_CSV)
-        df = df.fillna('')  # bo‘sh kataklarni tozalash
-        df['tugilgan_kun'] = pd.to_datetime(df['tugilgan_kun'], errors='coerce')
-        today = datetime.now()
-        return df[(df['tugilgan_kun'].dt.day == today.day) &
-                  (df['tugilgan_kun'].dt.month == today.month)]
-    except Exception as e:
-        print("Xatolik CSV faylni o‘qishda:", e)
-        return pd.DataFrame()
+Hurmat bilan, "Qo'qon elektr ta'minoti" masofasi filiali 💡"""
 
-def prepare_message(df):
-    if df.empty:
-        return None
+# --- Inline tugma va javob qabul qilish ---
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.message.reply_text("🎊 Sizni yana bir bor tabriklaymiz! 🎂")
 
-    names = []
-    for _, row in df.iterrows():
-        ism = str(row.get('ism', '')).strip()
-        bolim = str(row.get('bolim', '')).strip()
-        if ism:
-            names.append(f"{ism} ({bolim})" if bolim else ism)
-
-    if len(names) == 1:
-        return f"""Hurmatli {names[0]} temir yo‘l sohasining fidoyi xodimi.
-
-Sizni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz. Mas’uliyatli va sharafli mehnatingiz bilan yurtimiz taraqqiyotiga munosib hissa qo‘shib kelmoqdasiz. Sizga mustahkam sog‘liq, oilaviy baxt, ishlaringizda doimiy muvaffaqiyat va xavfsiz yo‘llar tilaymiz! Yana bir bor tug'ulgan kunigiz bilan tabriklaymiz.
-
-Hurmat bilan "Qo'qon elektr ta'minoti" masofasi filiali!"""
-    else:
-        return f"""Hurmatli {', '.join(names)} temir yo‘l sohasining fidoyi xodimlari.
-
-Sizlarni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz. Mas’uliyatli va sharafli mehnatingiz bilan yurtimiz taraqqiyotiga munosib hissa qo‘shib kelmoqdasiz. Sizlarga mustahkam sog‘liq, oilaviy baxt, ishlaringizda doimiy muvaffaqiyat va xavfsiz yo‘llar tilaymiz! Yana bir bor tug'ulgan kunigiz bilan tabriklaymiz.
-
-Hurmat bilan "Qo'qon elektr ta'minoti" masofasi filiali!"""
-
-async def send_message(text):
-    try:
-        bot = Bot(BOT_TOKEN)
-        await bot.send_message(chat_id=GROUP_ID, text=text)
-    except Exception as e:
-        print("Xatolik Telegramga yuborishda:", e)
-
-async def main():
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     df = get_today_birthdays()
     msg = prepare_message(df)
     if msg:
-        await send_message(msg)
+        keyboard = [[InlineKeyboardButton("🎉 Tug‘ilgan kuningiz bilan tabriklash!", callback_data='celebrate')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await context.bot.send_message(chat_id=GROUP_ID, text=msg, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
 
-# Workaround xatoli bilan ishlay oladigan variant
-name = "main"
-if name == "main":
-    asyncio.run(main())
+async def reply_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
+    if "rahmat" in text:
+        await update.message.reply_text("🤗 Sizga doimo muvaffaqiyat tilaymiz!")
+
+# --- Bot ishga tushishi ---
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CallbackQueryHandler(button))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply_text))
+
+# Botni ishga tushirish
+app.run_polling()
