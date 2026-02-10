@@ -68,6 +68,6 @@ def main():
     message = prepare_message(df)
     bot.send_message(chat_id=GROUP_ID, text=message)
 
-# --- XATOSIZ START ---
+# --- TO‘G‘RI START ---  
 if name == "__main__":
     main()
