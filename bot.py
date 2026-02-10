@@ -3,12 +3,12 @@ import random
 from datetime import datetime
 from telegram import Bot
 
-# ================== SOZLAMALAR ==================
+# --- Sozlamalar ---
 BOT_TOKEN = "8468084793:AAHdu9ZiywoxWdrhrJLYSU2Wt7F3O2cnrfU"
 GROUP_ID = -1003613716463
 SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv"
 
-# ================== MOTIVATSIYA ==================
+# --- Motivatsion xabarlar ---
 MOTIVATION_MESSAGES = [
     "🚆 Afsus, bugun tug‘ilgan kun yo‘q! Ammo yo‘llar tinch, ishlar barqaror. Sizning mehnatingiz bilan!",
     "⚡ Afsus, bugun tug‘ilgan kun yo‘q! Har bir rels sizning mas’uliyatingiz bilan mustahkam.",
@@ -22,7 +22,7 @@ MOTIVATION_MESSAGES = [
     "🚀 Afsus, bugun tug‘ilgan kun yo‘q! Taraqqiyot siz bilan davom etadi."
 ]
 
-# ================== MA’LUMOT O‘QISH ==================
+# --- Bugungi tug‘ilgan kunlarni olish ---
 def get_today_birthdays():
     df = pd.read_csv(SHEET_CSV)
     df = df.fillna("")
@@ -33,7 +33,7 @@ def get_today_birthdays():
         (df["tugilgan_kun"].dt.month == today.month)
     ]
 
-# ================== XABAR TAYYORLASH ==================
+# --- Xabar tayyorlash ---
 def prepare_message(df):
     if df.empty:
         return random.choice(MOTIVATION_MESSAGES)
@@ -61,13 +61,13 @@ def prepare_message(df):
             "\"Qo‘qon elektr ta’minoti\" masofasi filiali 💡"
         )
 
-# ================== ASOSIY ISH ==================
+# --- Asosiy ish ---
 def main():
     bot = Bot(BOT_TOKEN)
     df = get_today_birthdays()
     message = prepare_message(df)
     bot.send_message(chat_id=GROUP_ID, text=message)
 
-# ================== START ==================
+# --- XATOSIZ START ---
 if name == "__main__":
     main()
