@@ -85,8 +85,7 @@ async def send_birthdays(app):
 
 # Asosiy funksiya
 async def main():
-    app = ApplicationBuilder().
-    token(BOT_TOKEN).build()
+    app = ApplicationBuilder() token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", lambda u,c: send_birthdays(app)))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
     await send_birthdays(app)
