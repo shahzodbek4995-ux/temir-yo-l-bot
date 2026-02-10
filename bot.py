@@ -14,12 +14,12 @@ STATE_FILE = "state.json"
 MOTIVATION_MESSAGES = [
     "🚆 Bugun yo‘llar tinch, vagonlar tartibli. Siz fidoyi temiryo‘lchisiz! 💪",
     "⚡ Temir yo‘l – mas’uliyat va e’tibor. Bugun ham xavfsizlikni unutmang!",
-    "🌟 Sizning mehnatingiz tufayli yo‘llarimiz ishonchli va xavfsiz!",
+    "🌟 Sizning mehnatingiz tufayli yo‘llarimiz ishonchli!",
     "🚧 Har bir rels, har bir vagon — sizning fidoyiligingiz samarasi!",
     "🎯 Belgilangan vaqt va xavfsiz yo‘l — bu sizning mehnatingiz!",
     "💡 Temir yo‘l sohasi rivojida sizning hissangiz katta!",
     "🛤️ Bugun tug‘ilgan kun bo‘lmasa ham, jamoamiz ishda!",
-    "🌈 Har bir ish kuni — yangi imkoniyat. Bugun ham o‘rnak bo‘ling!",
+    "🌈 Har bir ish kuni — yangi imkoniyat!",
     "🏅 Siz temir yo‘l tizimining tayanchisiz!",
     "🚀 Fidoyi temiryo‘lchilar — taraqqiyot poydevori!"
 ]
@@ -36,7 +36,7 @@ def save_state(state):
     with open(STATE_FILE, "w") as f:
         json.dump(state, f)
 
-# ================== TUG‘ILGAN KUNNI OLISH ==================
+# ================== TUG‘ILGAN KUN ==================
 def get_today_birthdays():
     df = pd.read_csv(SHEET_CSV)
     df = df.fillna("")
@@ -48,38 +48,33 @@ def get_today_birthdays():
         (df["tugilgan_kun"].dt.month == today.month)
     ]
 
-# ================== ASOSIY LOGIKA ==================
-def main():
-    bot = Bot(token=BOT_TOKEN)
-    state = load_state()
-    df = get_today_birthdays()
+# ================== ASOSIY ISH ==================
+bot = Bot(token=BOT_TOKEN)
+state = load_state()
+df = get_today_birthdays()
 
-    # ===== AGAR BUGUN TUG‘ILGAN KUN BO‘LSA =====
-    if not df.empty:
-        people = [f"{r['ism']} ({r['bolim']})" for _, r in df.iterrows()]
+if not df.empty:
+    people = [f"{r['ism']} ({r['bolim']})" for _, r in df.iterrows()]
 
-        if len(people) == 1:
-            text = f"""🎉🥳 Hurmatli {people[0]}!
+    if len(people) == 1:
+        text = f"""🎉🥳 Hurmatli {people[0]}!
 
 Sizni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz!
-Mustahkam sog‘liq, oilaviy baxt va ishlaringizda muvaffaqiyat tilaymiz.
+Sog‘liq, baxt va ishlaringizda omad tilaymiz.
 
 Hurmat bilan,
 "Qo‘qon elektr ta’minoti" masofasi filiali 💡"""
-        else:
-            text = (
-                "🎉 Bugun tug‘ilganlar:\n- " +
-                "\n- ".join(people) +
-                "\n\nBarchangizni chin qalbimizdan tabriklaymiz! 🎊\n\n"
-                "Hurmat bilan,\n"
-                "\"Qo‘qon elektr ta’minoti\" masofasi filiali 💡"
-            )
+    else:
+        text = (
+            "🎉 Bugun tug‘ilganlar:\n- " +
+            "\n- ".join(people) +
+            "\n\nBarchangizni chin qalbimizdan tabriklaymiz! 🎊"
+        )
 
-        bot.send_message(chat_id=GROUP_ID, text=text)
-        save_state({"last_type": "birthday"})
-        return
+    bot.send_message(chat_id=GROUP_ID, text=text)
+    save_state({"last_type": "birthday"})
 
-    # ===== AGAR TUG‘ILGAN KUN BO‘LMASA =====
+else:
     if state.get("last_type") != "no_birthday":
         text = (
             "🎉 Afsus, bugun tug‘ilgan kun yo‘q!\n\n"
@@ -91,7 +86,3 @@ Hurmat bilan,
         text = random.choice(MOTIVATION_MESSAGES)
 
     bot.send_message(chat_id=GROUP_ID, text=text)
-
-# ================== ISHGA TUSHIRISH ==================
-if name == "__main__":
-    main()
