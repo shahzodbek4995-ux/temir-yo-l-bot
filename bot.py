@@ -1,15 +1,22 @@
 import pandas as pd
-import asyncio
 import random
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from datetime import datetime
+from telegram import Update, Bot
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    CallbackContext,
+    ContextTypes,
+    filters,
+)
 
+# --- Sozlamalar ---
 BOT_TOKEN = "8468084793:AAHdu9ZiywoxWdrhrJLYSU2Wt7F3O2cnrfU"
 GROUP_ID = -1003613716463
 SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv"
 
-# Motivatsion xabarlar
+# --- Motivatsion xabarlar ---
 MOTIVATION_MESSAGES = [
     "🚆 Bugun yo‘llar tinch, vagonlar tartibli, siz esa fidoyi xodim sifatida o‘z ishini mukammal bajarishda davom etyapsiz! 💪",
     "⚡️ Har bir temir yo‘l uzelining harakati sizning mehnatingiz bilan bog‘liq. Bugun yangi marralarga intiling! 🚄",
@@ -23,22 +30,23 @@ MOTIVATION_MESSAGES = [
     "🚀 Fidoyi xodimlar yo‘llarimizni xavfsiz qiladi va taraqqiyotga hissa qo‘shadi. Bugun yangi marralarga intiling!"
 ]
 
-# Rahmatlar hisobini saqlash
+# --- Rahmat xabarlarini hisoblash ---
 THANKS_COUNTER = {}
 
-# Tug‘ilgan kunlarni olish
+# --- Bugungi tug‘ilgan kunlarni olish ---
 def get_today_birthdays():
     try:
         df = pd.read_csv(SHEET_CSV)
         df = df.fillna('')
         df['tugilgan_kun'] = pd.to_datetime(df['tugilgan_kun'], errors='coerce')
         today = datetime.now()
-        return df[(df['tugilgan_kun'].dt.day == today.day) & 
+        return df[(df['tugilgan_kun'].dt.day == today.day) &
                   (df['tugilgan_kun'].dt.month == today.month)]
-    except:
+    except Exception as e:
+        print("Xatolik CSV faylni o‘qishda:", e)
         return pd.DataFrame()
 
-# Xabar tayyorlash
+# --- Xabar tayyorlash ---
 def prepare_message(df):
     if df.empty:
         return "Afsus, bugun tug‘ilgan kun yo‘q!\n\n" + random.choice(MOTIVATION_MESSAGES)
@@ -51,16 +59,25 @@ def prepare_message(df):
             names.append(f"*{ism} ({bolim})*" if bolim else f"*{ism}*")
 
     if len(names) == 1:
-        return f"Hurmatli {names[0]} temir yo‘l sohasining fidoyi xodimi.\n\nSizni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz.\n\nHurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali!"
+        return f"""Hurmatli {names[0]} temir yo‘l sohasining fidoyi xodimi.
+
+Sizni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz. Mas’uliyatli va sharafli mehnatingiz bilan yurtimiz taraqqiyotiga munosib hissa qo‘shib kelmoqdasiz. Sizga mustahkam sog‘liq, oilaviy baxt, ishlaringizda doimiy muvaffaqiyat va xavfsiz yo‘llar tilaymiz! Yana bir bor tug'ulgan kunigiz bilan tabriklaymiz.
+
+Hurmat bilan "Qo'qon elektr ta'minoti" masofasi filiali!"""
     else:
-        return f"Hurmatli {', '.join(names)} temir yo‘l sohasining fidoyi xodimlari.\n\nSizlarni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz.\n\nHurmat bilan, \"Qo'qon elektr ta'minoti\" masofasi filiali!"
+        return f"""Hurmatli {', '.join(names)} temir yo‘l sohasining fidoyi xodimlari.
 
-# Botga xabar yuborish
-async def send_message(app, text):
-    await app.bot.send_message(chat_id=GROUP_ID, text=text, parse_mode="Markdown")
+Sizlarni tug‘ilgan kuningiz bilan chin qalbimizdan tabriklaymiz. Mas’uliyatli va sharafli mehnatingiz bilan yurtimiz taraqqiyotiga munosib hissa qo‘shib kelmoqdasiz. Sizlarga mustahkam sog‘liq, oilaviy baxt, ishlaringizda doimiy muvaffaqiyat va xavfsiz yo‘llar tilaymiz! Yana bir bor tug'ulgan kunigiz bilan tabriklaymiz.
 
-# Rahmat xabarlarini qayta ishlash
-async def handle_thanks(user_id, update: Update):
+Hurmat bilan "Qo'qon elektr ta'minoti" masofasi filiali!"""
+
+# --- Telegramga xabar yuborish ---
+async def send_message(text):
+    bot = Bot(BOT_TOKEN)
+    await bot.send_message(chat_id=GROUP_ID, text=text, parse_mode="Markdown")
+
+# --- Rahmat xabarlarini ishlash ---
+async def handle_thanks(user_id: int, update: Update):
     count = THANKS_COUNTER.get(user_id, 0) + 1
     THANKS_COUNTER[user_id] = count
     if count == 1:
@@ -68,29 +85,22 @@ async def handle_thanks(user_id, update: Update):
     else:
         await update.message.reply_text("😅 Qaytarormen!")
 
-# Foydalanuvchi xabarlarini qabul qilish
-async def message_handler(update: Update, context):
-    text = update.message.text.lower()
+# --- Foydalanuvchi xabarlarini tekshirish ---
+async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     thanks_words = ["rahmat", "raxmat", "raxmad", "rahmad", "рахмад", "рамат"]
+    text = update.message.text.lower()
     if any(word in text for word in thanks_words):
-        user_id = update.message.from_user.id
-        await handle_thanks(user_id, update)
+        await handle_thanks(update.message.from_user.id, update)
 
-# Tug‘ilgan kun xabarini yuborish
-async def send_birthdays(app):
+# --- /start komandasi ---
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     df = get_today_birthdays()
     msg = prepare_message(df)
-    if msg:
-        await send_message(app, msg)
+    await send_message(msg)
 
-# Asosiy funksiya
-async def main():
-    app = ApplicationBuilder(). token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", lambda u,c: send_birthdays(app)))
+# --- Bot ishga tushirish ---
+if name == "__main__":
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
-    await send_birthdays(app)
-    await app.start()
-    await app.idle()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    app.run_polling()
