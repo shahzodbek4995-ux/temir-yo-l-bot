@@ -1,0 +1,21 @@
+name: Birthday Bot
+
+on:
+  schedule:
+    - cron: "0 3 * * *"  # UTC 03:00 → Toshkent 08:00
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - run: pip install pandas python-telegram-bot
+
+      - run: python bot.py
