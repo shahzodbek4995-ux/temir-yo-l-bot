@@ -14,10 +14,16 @@ SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3
 
 # --- Motivatsion xabarlar ---
 MOTIVATION_MESSAGES = [
-    "🚆 Bugun yo‘llar tinch va xavfsiz!",
-    "⚡️ Sizning mehnatingiz bilan tizim ishlamoqda!",
-    "🌟 Yangi kun – yangi imkoniyat!",
-    "🏅 Fidoyiligingiz uchun rahmat!",
+      "🚆 Bugun yo‘llar tinch, vagonlar tartibli, siz esa fidoyi xodim sifatida o‘z ishini mukammal bajarishda davom etyapsiz! 💪",
+    "⚡️ Har bir temir yo‘l uzelining harakati sizning mehnatingiz bilan bog‘liq. Bugun yangi marralarga intiling! 🚄",
+    "🌟 Sizning mas’uliyatli va e’tiborli mehnatingiz tufayli yurtimiz taraqqiyotga intilmoqda. Bugun ham shunday davom eting!",
+    "🚧 Vagonlar, relslar, stansiyalar… hammasi sizning mehnatingiz bilan tinch va xavfsiz ishlaydi. Rahmat sizga!",
+    "🎯 Har bir to‘xtovsiz harakat, har bir belgilangan vaqtni bajarish – bu sizning fidoyiligingiz! Bugun yangi marralarni zabt eting!",
+    "💡 Yangi loyihalar, yangi imkoniyatlar – temir yo‘l sohasi doimo yangilanadi. Siz ham yangilikka tayyormisiz?",
+    "🛤 Bugun hech kim tug‘ilgan kunini nishonlamasa ham, jamoamiz faol va yo‘llar xavfsiz! Sizning mehnatingiz buning garovi!",
+    "🌈 Har bir kun – yangi imkoniyat. Bugun biror yangilikni o‘zingiz yaratib, hamkasblaringizni ilhomlantiring!",
+    "🏅 Sizning mas’uliyatli mehnatingiz temir yo‘l infratuzilmasini mukammal ishlashini ta’minlaydi. Bugun ham shunday davom eting!",
+    "🚀 Fidoyi xodimlar yo‘llarimizni xavfsiz qiladi va taraqqiyotga hissa qo‘shadi. Bugun yangi marralarga intiling!"
 ]
 
 # --- Rahmatga javob ---
@@ -87,13 +93,13 @@ async def send_message(text):
     except Exception as e:
         print("Telegram xato:", e)
 
-# --- Asosiy funksiya (faqat 08:25 da yuboradi) ---
+# --- Asosiy funksiya (faqat 08:50 da yuboradi) ---
 async def main():
     tz = pytz.timezone("Asia/Tashkent")
     now = datetime.now(tz)
 
-    # 08:25 - 08:34 oralig‘ida yuboradi
-    if now.hour == 8 and 25 <= now.minute < 35:
+    # 08:50 - 08:59 oralig‘ida yuboradi
+    if now.hour == 8 and 50 <= now.minute < 60:
         df = get_today_birthdays()
         msg = prepare_message(df)
         await send_message(msg)
