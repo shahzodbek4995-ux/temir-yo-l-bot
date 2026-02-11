@@ -8,22 +8,17 @@ from telegram import Bot, Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
 # --- Sozlamalar ---
-BOT_TOKEN = os.getenv("BOT_TOKEN")  # GitHub Secrets ga qo‘ying!
+BOT_TOKEN = os.getenv("BOT_TOKEN")  # GitHub Secrets: BOT_TOKEN
 GROUP_ID = -1003613716463
 SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv&gid=1184571774"
+LAST_RUN_FILE = "last_run.txt"  # Bir kunda 1 marta yuborish uchun
 
 # --- Motivatsion xabarlar ---
 MOTIVATION_MESSAGES = [
-      "🚆 Bugun yo‘llar tinch, vagonlar tartibli, siz esa fidoyi xodim sifatida o‘z ishini mukammal bajarishda davom etyapsiz! 💪",
-    "⚡️ Har bir temir yo‘l uzelining harakati sizning mehnatingiz bilan bog‘liq. Bugun yangi marralarga intiling! 🚄",
-    "🌟 Sizning mas’uliyatli va e’tiborli mehnatingiz tufayli yurtimiz taraqqiyotga intilmoqda. Bugun ham shunday davom eting!",
-    "🚧 Vagonlar, relslar, stansiyalar… hammasi sizning mehnatingiz bilan tinch va xavfsiz ishlaydi. Rahmat sizga!",
-    "🎯 Har bir to‘xtovsiz harakat, har bir belgilangan vaqtni bajarish – bu sizning fidoyiligingiz! Bugun yangi marralarni zabt eting!",
-    "💡 Yangi loyihalar, yangi imkoniyatlar – temir yo‘l sohasi doimo yangilanadi. Siz ham yangilikka tayyormisiz?",
-    "🛤 Bugun hech kim tug‘ilgan kunini nishonlamasa ham, jamoamiz faol va yo‘llar xavfsiz! Sizning mehnatingiz buning garovi!",
-    "🌈 Har bir kun – yangi imkoniyat. Bugun biror yangilikni o‘zingiz yaratib, hamkasblaringizni ilhomlantiring!",
-    "🏅 Sizning mas’uliyatli mehnatingiz temir yo‘l infratuzilmasini mukammal ishlashini ta’minlaydi. Bugun ham shunday davom eting!",
-    "🚀 Fidoyi xodimlar yo‘llarimizni xavfsiz qiladi va taraqqiyotga hissa qo‘shadi. Bugun yangi marralarga intiling!"
+    "🚆 Bugun yo‘llar tinch va xavfsiz!",
+    "⚡️ Sizning mehnatingiz bilan tizim ishlamoqda!",
+    "🌟 Yangi kun – yangi imkoniyat!",
+    "🏅 Fidoyiligingiz uchun rahmat!",
 ]
 
 # --- Rahmatga javob ---
@@ -93,18 +88,33 @@ async def send_message(text):
     except Exception as e:
         print("Telegram xato:", e)
 
-# --- Asosiy funksiya (faqat 08:50 da yuboradi) ---
-async def main():
+# --- Tekshirish: bugun yuborilganmi? ---
+def already_sent_today():
     tz = pytz.timezone("Asia/Tashkent")
-    now = datetime.now(tz)
+    today_str = datetime.now(tz).strftime("%Y-%m-%d")
+    if os.path.exists(LAST_RUN_FILE):
+        with open(LAST_RUN_FILE, "r") as f:
+            last_date = f.read().strip()
+        if last_date == today_str:
+            return True
+    return False
 
-    # 08:50 - 08:59 oralig‘ida yuboradi
-    if now.hour == 8 and 50 <= now.minute < 60:
-        df = get_today_birthdays()
-        msg = prepare_message(df)
-        await send_message(msg)
-    else:
-        print("Hozir yuborish vaqti emas.")
+def mark_sent_today():
+    tz = pytz.timezone("Asia/Tashkent")
+    today_str = datetime.now(tz).strftime("%Y-%m-%d")
+    with open(LAST_RUN_FILE, "w") as f:
+        f.write(today_str)
+
+# --- Asosiy funksiya ---
+async def main():
+    if already_sent_today():
+        print("Bugun xabar allaqachon yuborilgan.")
+        return
+
+    df = get_today_birthdays()
+    msg = prepare_message(df)
+    await send_message(msg)
+    mark_sent_today()
 
 # --- Listener (rahmat xabari uchun) ---
 def run_listener():
@@ -115,8 +125,5 @@ def run_listener():
 
 # --- Ishga tushirish ---
 if __name__ == "__main__":
-    # Workflow orqali yuborish
     asyncio.run(main())
-
-    # Agar xohlasa, manual yoki serverda doimiy listener ishlatsa:
-    # run_listener()
+      # run_listener()  # Agar serverda doimiy ishlash kerak bo‘lsa
