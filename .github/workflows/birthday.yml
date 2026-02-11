@@ -1,10 +1,9 @@
 name: Birthday Bot
 
 on:
-  # Har kuni Toshkent vaqti bilan soat 08:00 da ishga tushadi
   schedule:
-    - cron: "0 3 * * *" # UTC 03:00 = Toshkent 08:00
-  workflow_dispatch: # Qo'lda ham ishga tushirish imkoniyati
+    - cron: "25 3 * * *"   # UTC 03:25 = Toshkent 08:25
+  workflow_dispatch:
 
 jobs:
   run-bot:
