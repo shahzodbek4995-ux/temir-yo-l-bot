@@ -2,8 +2,8 @@ name: Birthday Bot
 
 on:
   schedule:
-    # Har kuni 09:45 Toshkent vaqti → UTC 04:45
-    - cron: "45 4 * * *"
+    # Har kuni 09:15 Toshkent vaqti → UTC 04:15
+    - cron: "15 4 * * *"
   workflow_dispatch:  # Qo‘lda ham ishga tushirish mumkin
 
 jobs:
