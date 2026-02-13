@@ -6,7 +6,7 @@ from telegram import Bot, Update
 from telegram.ext import ContextTypes
 
 # --- Sozlamalar ---
-BOT_TOKEN = "8468084793:AAHdu9ZiywoxWdrhrJLYSU2Wt7F3O2cnrfU"
+BOT_TOKEN = "8468084793:AAGCPlKpZP8ioIziKzW5Bvz1sL-Jv20L2cg"
 GROUP_ID = -1003613716463
 SHEET_CSV = "https://docs.google.com/spreadsheets/d/14Y5SwUSgO00VTgLYAZR73XoQGg3V-p8M/export?format=csv&gid=1184571774"
 
